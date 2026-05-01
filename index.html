@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SME Connect Portal</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f5f6fa; color: #1a1a2e; }
+
+  /* NAV */
+  nav { background: #1a1a2e; color: white; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
+  nav .logo { font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
+  nav .logo span { color: #4fc3f7; }
+  nav .nav-links { display: flex; gap: 1rem; }
+  nav .nav-links button { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.9rem; padding: 6px 12px; border-radius: 6px; transition: all 0.2s; }
+  nav .nav-links button:hover, nav .nav-links button.active { background: #4fc3f7; color: #1a1a2e; font-weight: 600; }
+  nav .user-badge { background: #4fc3f7; color: #1a1a2e; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; }
+
+  /* PAGES */
+  .page { display: none; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* HERO */
+  .hero { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border-radius: 16px; padding: 3rem 2rem; margin-bottom: 2rem; text-align: center; }
+  .hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  .hero p { color: #90caf9; margin-bottom: 1.5rem; }
+  .search-bar { display: flex; gap: 10px; max-width: 600px; margin: 0 auto; }
+  .search-bar input { flex: 1; padding: 12px 16px; border-radius: 8px; border: none; font-size: 1rem; outline: none; }
+  .search-bar select { padding: 12px 16px; border-radius: 8px; border: none; font-size: 0.9rem; background: white; cursor: pointer; }
+  .search-bar button { padding: 12px 24px; background: #4fc3f7; color: #1a1a2e; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: white; border-radius: 12px; padding: 1.2rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .stat-card .num { font-size: 2rem; font-weight: 700; color: #1a1a2e; }
+  .stat-card .label { font-size: 0.8rem; color: #666; margin-top: 4px; }
+
+  /* SME CARDS GRID */
+  .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; color: #1a1a2e; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; }
+  .sme-card { background: white; border-radius: 14px; padding: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border: 2px solid transparent; }
+  .sme-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); border-color: #4fc3f7; }
+  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; color: white; flex-shrink: 0; }
+  .card-name { font-weight: 700; font-size: 1rem; }
+  .card-role { font-size: 0.8rem; color: #666; }
+  .availability { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 10px; }
+  .available { background: #e8f5e9; color: #2e7d32; }
+  .busy { background: #fff3e0; color: #e65100; }
+  .skills-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .skill-tag { background: #e3f2fd; color: #1565c0; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .rating { color: #f59e0b; font-size: 0.85rem; font-weight: 600; }
+  .points-badge { background: #1a1a2e; color: #4fc3f7; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+  .badge-icon { font-size: 1rem; margin-right: 4px; }
+  .btn-request { width: 100%; margin-top: 12px; padding: 9px; background: #4fc3f7; color: #1a1a2e; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; }
+  .btn-request:hover { background: #0288d1; color: white; }
+
+  /* LEADERBOARD */
+  .leaderboard { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .lb-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { font-size: 1.4rem; font-weight: 800; width: 36px; text-align: center; color: #1a1a2e; }
+  .lb-rank.gold { color: #f59e0b; }
+  .lb-rank.silver { color: #9e9e9e; }
+  .lb-rank.bronze { color: #a1662f; }
+  .lb-info { flex: 1; }
+  .lb-name { font-weight: 700; font-size: 0.95rem; }
+  .lb-skill { font-size: 0.8rem; color: #666; }
+  .lb-pts { font-weight: 700; color: #1a1a2e; font-size: 0.95rem; text-align: right; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 16px; padding: 2rem; width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-size: 1.3rem; margin-bottom: 1.2rem; color: #1a1a2e; }
+  .modal label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 4px; margin-top: 14px; }
+  .modal input, .modal select, .modal textarea { width: 100%; padding: 10px 12px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border 0.2s; font-family: inherit; }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: #4fc3f7; }
+  .modal textarea { resize: vertical; min-height: 80px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 1.5rem; }
+  .btn-primary { flex: 1; padding: 11px; background: #1a1a2e; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
+  .btn-secondary { flex: 1; padding: 11px; background: white; color: #1a1a2e; border: 1.5px solid #1a1a2e; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
+  .close-btn { float: right; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #999; margin-top: -8px; }
+
+  /* PROFILE PAGE */
+  .profile-header { background: white; border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; display: flex; gap: 2rem; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .profile-avatar { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 2rem; color: white; flex-shrink: 0; }
+  .profile-name { font-size: 1.5rem; font-weight: 800; }
+  .profile-role { color: #666; margin: 4px 0; }
+  .profile-meta { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .profile-meta span { font-size: 0.85rem; color: #555; }
+  .profile-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .profile-section { background: white; border-radius: 14px; padding: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .profile-section h3 { font-size: 0.9rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .stars { color: #f59e0b; font-size: 1.1rem; }
+
+  /* ADMIN */
+  .admin-tabs { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+  .admin-tab { padding: 8px 20px; border-radius: 8px; border: 1.5px solid #e0e0e0; background: white; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+  .admin-tab.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+  .admin-table { width: 100%; background: white; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; border-collapse: collapse; }
+  .admin-table th { background: #1a1a2e; color: white; padding: 12px 16px; text-align: left; font-size: 0.85rem; }
+  .admin-table td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .status-pill { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .pill-green { background: #e8f5e9; color: #2e7d32; }
+  .pill-orange { background: #fff3e0; color: #e65100; }
+  .pill-blue { background: #e3f2fd; color: #1565c0; }
+
+  /* REGISTER */
+  .register-form { background: white; border-radius: 16px; padding: 2rem; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .register-form h2 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { margin-bottom: 1rem; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 4px; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; outline: none; font-family: inherit; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #4fc3f7; }
+  .toast { position: fixed; bottom: 2rem; right: 2rem; background: #1a1a2e; color: white; padding: 14px 22px; border-radius: 10px; font-weight: 600; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .no-results { text-align: center; color: #999; padding: 3rem; font-size: 1rem; }
+
+  @media (max-width: 640px) {
+    .profile-sections { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    nav .nav-links button { font-size: 0.75rem; padding: 5px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">SME <span>Connect</span></div>
+  <div class="nav-links">
+    <button onclick="showPage('home')" class="active" id="nav-home">Find SMEs</button>
+    <button onclick="showPage('leaderboard')" id="nav-leaderboard">Leaderboard</button>
+    <button onclick="showPage('register')" id="nav-register">Join as SME</button>
+    <button onclick="showPage('admin')" id="nav-admin">Admin</button>
+  </div>
+  <button class="user-badge" onclick="showPage('profile')">👤 My Profile</button>
+</nav>
+
+<!-- ===== HOME PAGE ===== -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <h1>Find the Right Expert, Fast</h1>
+    <p>Connect with Subject Matter Experts across your organisation to unblock your projects</p>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Search by skill, topic or name..." oninput="filterSMEs()">
+      <select id="filter-availability" onchange="filterSMEs()">
+        <option value="">All Availability</option>
+        <option value="available">Available Now</option>
+        <option value="busy">Busy</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="num" id="stat-sme">8</div><div class="label">Registered SMEs</div></div>
+    <div class="stat-card"><div class="num" id="stat-req">24</div><div class="label">Help Requests</div></div>
+    <div class="stat-card"><div class="num" id="stat-resolved">21</div><div class="label">Issues Resolved</div></div>
+    <div class="stat-card"><div class="num">4.7 ⭐</div><div class="label">Avg SME Rating</div></div>
+  </div>
+
+  <div class="section-title">Browse SMEs</div>
+  <div class="cards-grid" id="sme-grid"></div>
+  <div class="no-results" id="no-results" style="display:none;">No SMEs found matching your search.</div>
+</div>
+
+<!-- ===== LEADERBOARD PAGE ===== -->
+<div class="page" id="page-leaderboard">
+  <div class="section-title" style="font-size:1.5rem; margin-bottom:1.5rem;">🏆 SME Leaderboard</div>
+  <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.5rem;">
+    <div>
+      <div class="section-title">Top Contributors this Month</div>
+      <div class="leaderboard" id="leaderboard-list"></div>
+    </div>
+    <div>
+      <div class="section-title">Badge Guide</div>
+      <div style="background:white; border-radius:14px; padding:1.2rem; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div style="margin-bottom:16px;">
+          <div style="font-size:1.5rem;">🥇</div>
+          <div style="font-weight:700; margin:4px 0;">Gold Badge</div>
+          <div style="font-size:0.85rem; color:#666;">500+ points · Top expert recognition</div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:1.5rem;">🥈</div>
+          <div style="font-weight:700; margin:4px 0;">Silver Badge</div>
+          <div style="font-size:0.85rem; color:#666;">200–499 points · Experienced helper</div>
+        </div>
+        <div>
+          <div style="font-size:1.5rem;">🥉</div>
+          <div style="font-weight:700; margin:4px 0;">Bronze Badge</div>
+          <div style="font-size:0.85rem; color:#666;">50–199 points · Rising contributor</div>
+        </div>
+        <div style="margin-top:16px; padding-top:16px; border-top:1px solid #f0f0f0; font-size:0.82rem; color:#888;">
+          Points are earned by: resolving help requests (+20), receiving 5-star ratings (+15), completing projects (+10)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REGISTER PAGE ===== -->
+<div class="page" id="page-register">
+  <div class="register-form">
+    <h2>Register as an SME</h2>
+    <p style="color:#666; margin-bottom:1.5rem; font-size:0.9rem;">Share your expertise and help your team navigate challenges. Earn points and recognition for every contribution.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>First Name *</label>
+        <input type="text" id="reg-fname" placeholder="e.g. Priya">
+      </div>
+      <div class="form-group">
+        <label>Last Name *</label>
+        <input type="text" id="reg-lname" placeholder="e.g. Sharma">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Job Title / Role *</label>
+      <input type="text" id="reg-role" placeholder="e.g. Senior Business Analyst">
+    </div>
+    <div class="form-group">
+      <label>Email *</label>
+      <input type="email" id="reg-email" placeholder="your.name@company.com">
+    </div>
+    <div class="form-group">
+      <label>Primary Area of Expertise *</label>
+      <select id="reg-domain">
+        <option value="">Select domain...</option>
+        <option>Business Analysis</option>
+        <option>Product Management</option>
+        <option>Data & Analytics</option>
+        <option>Cloud & Infrastructure</option>
+        <option>Agile / Scrum</option>
+        <option>Change Management</option>
+        <option>Cybersecurity</option>
+        <option>ERP Systems</option>
+        <option>Finance & Accounting</option>
+        <option>UX / Design</option>
+        <option>Regulatory & Compliance</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Key Skills (comma separated)</label>
+      <input type="text" id="reg-skills" placeholder="e.g. Stakeholder mapping, JIRA, SQL, Tableau">
+    </div>
+    <div class="form-group">
+      <label>Past Projects / Experience</label>
+      <textarea id="reg-projects" rows="3" placeholder="Briefly describe projects where you've built expertise..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Availability</label>
+        <select id="reg-avail">
+          <option value="available">Available Now</option>
+          <option value="busy">Currently Busy</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Calendar / Meeting Link</label>
+        <input type="text" id="reg-calendar" placeholder="Calendly or Teams link">
+      </div>
+    </div>
+    <button class="btn-primary" style="width:100%; padding:13px; margin-top:0.5rem;" onclick="registerSME()">Register as SME →</button>
+  </div>
+</div>
+
+<!-- ===== PROFILE PAGE ===== -->
+<div class="page" id="page-profile">
+  <div class="profile-header">
+    <div class="profile-avatar" style="background: #1a1a2e;">YO</div>
+    <div>
+      <div class="profile-name">You (Team Member)</div>
+      <div class="profile-role">Business Analyst · Logged in</div>
+      <div class="profile-meta">
+        <span>📧 you@company.com</span>
+        <span>📋 3 Help Requests Sent</span>
+        <span>⭐ 2 Reviews Given</span>
+      </div>
+    </div>
+  </div>
+  <div class="profile-sections">
+    <div class="profile-section">
+      <h3>My Help Requests</h3>
+      <div id="my-requests-list" style="font-size:0.9rem; color:#555;">No requests yet.</div>
+    </div>
+    <div class="profile-section">
+      <h3>SMEs I've Worked With</h3>
+      <div style="font-size:0.9rem; color:#555;">Your engaged SMEs will appear here.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PAGE ===== -->
+<div class="page" id="page-admin">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+    <div style="font-size:1.5rem; font-weight:800;">Admin Dashboard</div>
+    <div style="font-size:0.85rem; background:#e8f5e9; color:#2e7d32; padding:6px 14px; border-radius:20px; font-weight:600;">Admin Access</div>
+  </div>
+  <div class="stats-row" style="margin-bottom:1.5rem;">
+    <div class="stat-card"><div class="num">8</div><div class="label">Total SMEs</div></div>
+    <div class="stat-card"><div class="num">24</div><div class="label">Total Requests</div></div>
+    <div class="stat-card"><div class="num">6</div><div class="label">Available SMEs</div></div>
+    <div class="stat-card"><div class="num">87%</div><div class="label">Resolution Rate</div></div>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="showAdminTab('smes', this)">All SMEs</button>
+    <button class="admin-tab" onclick="showAdminTab('requests', this)">Help Requests</button>
+  </div>
+  <div id="admin-tab-smes">
+    <table class="admin-table">
+      <thead><tr><th>Name</th><th>Domain</th><th>Status</th><th>Points</th><th>Badge</th><th>Requests</th></tr></thead>
+      <tbody id="admin-sme-table"></tbody>
+    </table>
+  </div>
+  <div id="admin-tab-requests" style="display:none;">
+    <table class="admin-table">
+      <thead><tr><th>Requestor</th><th>SME</th><th>Topic</th><th>Urgency</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody id="admin-req-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== REQUEST MODAL ===== -->
+<div class="modal-overlay" id="request-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h2>Send Help Request</h2>
+    <div style="display:flex; align-items:center; gap:10px; background:#f5f6fa; padding:10px 14px; border-radius:10px; margin-bottom:8px;">
+      <div id="modal-sme-avatar" class="avatar" style="width:40px;height:40px;font-size:1rem;"></div>
+      <div>
+        <div id="modal-sme-name" style="font-weight:700; font-size:0.95rem;"></div>
+        <div id="modal-sme-role" style="font-size:0.8rem; color:#666;"></div>
+      </div>
+    </div>
+    <label>Request Type</label>
+    <select id="req-type" onchange="toggleReqType()">
+      <option value="quick">Quick Message</option>
+      <option value="detailed">Detailed Request</option>
+    </select>
+
+    <div id="quick-fields">
+      <label>Your Message</label>
+      <textarea id="req-message" rows="4" placeholder="Briefly describe what you need help with..."></textarea>
+    </div>
+
+    <div id="detailed-fields" style="display:none;">
+      <label>Project Name</label>
+      <input type="text" id="req-project" placeholder="e.g. ABC Client ERP Rollout">
+      <label>Problem Description</label>
+      <textarea id="req-problem" rows="3" placeholder="Describe the challenge or roadblock in detail..."></textarea>
+      <label>Skills / Expertise Needed</label>
+      <input type="text" id="req-skills-needed" placeholder="e.g. Change management, stakeholder analysis">
+      <label>Urgency</label>
+      <select id="req-urgency">
+        <option value="low">Low — within a week</option>
+        <option value="medium">Medium — within 2-3 days</option>
+        <option value="high">High — today/tomorrow</option>
+      </select>
+    </div>
+
+    <label>Schedule a Meeting (optional)</label>
+    <div id="modal-calendar-link" style="background:#e3f2fd; padding:10px 14px; border-radius:8px; font-size:0.85rem; color:#1565c0; margin-top:4px;"></div>
+
+    <label>Your Name</label>
+    <input type="text" id="req-name" placeholder="Your full name">
+    <label>Your Email</label>
+    <input type="email" id="req-email" placeholder="your.email@company.com">
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitRequest()">Send Request →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RATE MODAL ===== -->
+<div class="modal-overlay" id="rate-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeRateModal()">✕</button>
+    <h2>Rate this SME</h2>
+    <div style="margin-bottom:1rem; color:#555; font-size:0.9rem;">Your rating helps SMEs earn points and improves KPIs.</div>
+    <div id="rate-sme-name" style="font-weight:700; font-size:1rem; margin-bottom:1rem;"></div>
+    <label style="display:block; font-size:0.85rem; font-weight:600; color:#555; margin-bottom:8px;">Rating</label>
+    <div style="display:flex; gap:10px; font-size:2rem; margin-bottom:1rem; cursor:pointer;" id="star-rating">
+      <span onclick="setRating(1)">☆</span>
+      <span onclick="setRating(2)">☆</span>
+      <span onclick="setRating(3)">☆</span>
+      <span onclick="setRating(4)">☆</span>
+      <span onclick="setRating(5)">☆</span>
+    </div>
+    <label style="display:block; font-size:0.85rem; font-weight:600; color:#555; margin-bottom:4px;">Comment (optional)</label>
+    <textarea id="rate-comment" rows="3" style="width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:8px; font-size:0.95rem; font-family:inherit;" placeholder="Share your experience working with this SME..."></textarea>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button class="btn-secondary" onclick="closeRateModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitRating()">Submit Rating →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA =====
+let smes = [
+  { id:1, name:"Priya Sharma", role:"Senior Business Analyst", domain:"Business Analysis", skills:["Stakeholder Mapping","BRD Writing","JIRA","Process Mapping"], availability:"available", points:620, rating:4.9, reviews:14, projects:"Led requirements for HDFC digital transformation. Implemented agile BA practices at 3 large clients.", email:"priya.sharma@company.com", calendar:"calendly.com/priya-sharma", color:"#7c3aed" },
+  { id:2, name:"Rahul Mehta", role:"Cloud Architect", domain:"Cloud & Infrastructure", skills:["AWS","Azure","Kubernetes","DevOps","Terraform"], availability:"available", points:480, rating:4.8, reviews:11, projects:"Cloud migration for manufacturing client. Built DevOps pipeline reducing deployment time by 60%.", email:"rahul.mehta@company.com", calendar:"calendly.com/rahul-mehta", color:"#0ea5e9" },
+  { id:3, name:"Sneha Iyer", role:"Data & Analytics Lead", domain:"Data & Analytics", skills:["Tableau","Power BI","SQL","Python","Data Modelling"], availability:"busy", points:390, rating:4.7, reviews:9, projects:"Built enterprise data warehouse for retail client. Created KPI dashboards for C-suite.", email:"sneha.iyer@company.com", calendar:"teams.microsoft.com/l/sneha", color:"#10b981" },
+  { id:4, name:"Amit Desai", role:"Agile Coach", domain:"Agile / Scrum", skills:["Scrum","SAFe","PI Planning","OKRs","Retrospectives"], availability:"available", points:310, rating:4.6, reviews:8, projects:"Scaled agile transformation for 200-person engineering org. Ran 40+ PI planning sessions.", email:"amit.desai@company.com", calendar:"calendly.com/amit-desai", color:"#f59e0b" },
+  { id:5, name:"Kavya Nair", role:"Change Management Specialist", domain:"Change Management", skills:["ADKAR","Training Design","Comms Planning","Resistance Management"], availability:"available", points:260, rating:4.8, reviews:7, projects:"Led change strategy for ERP rollout impacting 5000 users. Created adoption playbook.", email:"kavya.nair@company.com", calendar:"calendly.com/kavya-nair", color:"#ec4899" },
+  { id:6, name:"Vikram Joshi", role:"Cybersecurity Expert", domain:"Cybersecurity", skills:["ISO 27001","VAPT","SIEM","Risk Assessment","Zero Trust"], availability:"busy", points:190, rating:4.5, reviews:6, projects:"Security architecture for BFSI client. Conducted VAPT for 3 large enterprise systems.", email:"vikram.joshi@company.com", calendar:"calendly.com/vikram-joshi", color:"#ef4444" },
+  { id:7, name:"Ananya Roy", role:"UX Research Lead", domain:"UX / Design", skills:["User Research","Figma","Usability Testing","Design Thinking","Prototyping"], availability:"available", points:155, rating:4.7, reviews:5, projects:"Redesigned customer portal increasing NPS by 22 points. Ran 30+ user research sessions.", email:"ananya.roy@company.com", calendar:"calendly.com/ananya-roy", color:"#8b5cf6" },
+  { id:8, name:"Deepak Kulkarni", role:"Finance & ERP SME", domain:"ERP Systems", skills:["SAP S/4HANA","Oracle Financials","FI/CO","UAT","Data Migration"], availability:"available", points:90, rating:4.4, reviews:4, projects:"SAP S4 implementation for manufacturing client. Handled UAT for 3 ERP rollouts.", email:"deepak.kulkarni@company.com", calendar:"calendly.com/deepak-kulkarni", color:"#0891b2" }
+];
+
+let requests = [
+  { id:1, requestor:"Nikhil Verma", sme:"Priya Sharma", topic:"Stakeholder Analysis for insurance client", urgency:"High", status:"Resolved", date:"28 Apr 2026" },
+  { id:2, requestor:"Tanvi Shah", sme:"Rahul Mehta", topic:"Azure cost optimisation advice", urgency:"Medium", status:"In Progress", date:"30 Apr 2026" },
+  { id:3, requestor:"Rohan Gupta", sme:"Sneha Iyer", topic:"Power BI dashboard design help", urgency:"Low", status:"Pending", date:"01 May 2026" },
+];
+
+let currentSME = null;
+let selectedRating = 0;
+let myRequests = [];
+
+// ===== BADGE =====
+function getBadge(points) {
+  if (points >= 500) return "🥇 Gold";
+  if (points >= 200) return "🥈 Silver";
+  if (points >= 50) return "🥉 Bronze";
+  return "🔰 New";
+}
+
+// ===== INITIALS =====
+function getInitials(name) {
+  return name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+}
+
+// ===== RENDER SME CARDS =====
+function renderSMEs(list) {
+  const grid = document.getElementById("sme-grid");
+  const noRes = document.getElementById("no-results");
+  if (list.length === 0) { grid.innerHTML = ""; noRes.style.display = "block"; return; }
+  noRes.style.display = "none";
+  grid.innerHTML = list.map(s => `
+    <div class="sme-card">
+      <div class="card-header">
+        <div class="avatar" style="background:${s.color}">${getInitials(s.name)}</div>
+        <div>
+          <div class="card-name">${s.name}</div>
+          <div class="card-role">${s.role}</div>
+        </div>
+      </div>
+      <span class="availability ${s.availability === 'available' ? 'available' : 'busy'}">
+        ${s.availability === 'available' ? '🟢 Available' : '🟡 Busy'}
+      </span>
+      <div class="skills-list">
+        ${s.skills.slice(0,3).map(sk => `<span class="skill-tag">${sk}</span>`).join("")}
+        ${s.skills.length > 3 ? `<span class="skill-tag">+${s.skills.length - 3}</span>` : ""}
+      </div>
+      <div class="card-footer">
+        <div class="rating">⭐ ${s.rating} (${s.reviews} reviews)</div>
+        <div class="points-badge">${getBadge(s.points)} · ${s.points}pts</div>
+      </div>
+      <button class="btn-request" onclick="openRequest(${s.id})">Send Help Request</button>
+      <button class="btn-request" style="background:white;border:1.5px solid #1a1a2e;margin-top:6px;" onclick="openRate(${s.id})">⭐ Rate this SME</button>
+    </div>
+  `).join("");
+}
+
+// ===== FILTER =====
+function filterSMEs() {
+  const q = document.getElementById("search-input").value.toLowerCase();
+  const avail = document.getElementById("filter-availability").value;
+  let filtered = smes.filter(s => {
+    const matchQ = !q || s.name.toLowerCase().includes(q) || s.domain.toLowerCase().includes(q) || s.skills.some(sk => sk.toLowerCase().includes(q));
+    const matchA = !avail || s.availability === avail;
+    return matchQ && matchA;
+  });
+  renderSMEs(filtered);
+}
+
+// ===== LEADERBOARD =====
+function renderLeaderboard() {
+  const sorted = [...smes].sort((a,b) => b.points - a.points);
+  const rankClasses = ["gold","silver","bronze"];
+  const rankSymbols = ["🥇","🥈","🥉"];
+  document.getElementById("leaderboard-list").innerHTML = sorted.map((s, i) => `
+    <div class="lb-row">
+      <div class="lb-rank ${rankClasses[i] || ''}">${i < 3 ? rankSymbols[i] : "#"+(i+1)}</div>
+      <div class="avatar" style="background:${s.color};width:38px;height:38px;font-size:0.9rem;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">${getInitials(s.name)}</div>
+      <div class="lb-info">
+        <div class="lb-name">${s.name}</div>
+        <div class="lb-skill">${s.domain} · ${s.reviews} reviews</div>
+      </div>
+      <div>
+        <div class="lb-pts">${s.points} pts</div>
+        <div style="font-size:0.8rem; text-align:right;">${getBadge(s.points)}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ===== ADMIN TABLE =====
+function renderAdminSMEs() {
+  document.getElementById("admin-sme-table").innerHTML = smes.map(s => `
+    <tr>
+      <td><strong>${s.name}</strong></td>
+      <td>${s.domain}</td>
+      <td><span class="status-pill ${s.availability === 'available' ? 'pill-green' : 'pill-orange'}">${s.availability === 'available' ? 'Available' : 'Busy'}</span></td>
+      <td>${s.points} pts</td>
+      <td>${getBadge(s.points)}</td>
+      <td>${s.reviews}</td>
+    </tr>
+  `).join("");
+}
+
+function renderAdminRequests() {
+  const allRequests = [...requests, ...myRequests.map((r,i) => ({...r, id:100+i, date:"Today"}))];
+  document.getElementById("admin-req-table").innerHTML = allRequests.map(r => `
+    <tr>
+      <td>${r.requestor}</td>
+      <td>${r.sme}</td>
+      <td>${r.topic}</td>
+      <td><span class="status-pill ${r.urgency === 'High' ? 'pill-orange' : r.urgency === 'Medium' ? 'pill-blue' : 'pill-green'}">${r.urgency}</span></td>
+      <td><span class="status-pill ${r.status === 'Resolved' ? 'pill-green' : r.status === 'In Progress' ? 'pill-blue' : 'pill-orange'}">${r.status}</span></td>
+      <td>${r.date}</td>
+    </tr>
+  `).join("");
+}
+
+// ===== MODAL =====
+function openRequest(id) {
+  currentSME = smes.find(s => s.id === id);
+  document.getElementById("modal-sme-avatar").textContent = getInitials(currentSME.name);
+  document.getElementById("modal-sme-avatar").style.background = currentSME.color;
+  document.getElementById("modal-sme-name").textContent = currentSME.name;
+  document.getElementById("modal-sme-role").textContent = currentSME.role;
+  document.getElementById("modal-calendar-link").innerHTML = currentSME.calendar
+    ? `📅 Book a meeting: <a href="https://${currentSME.calendar}" target="_blank" style="color:#1565c0;">${currentSME.calendar}</a>`
+    : "No calendar link provided.";
+  document.getElementById("request-modal").classList.add("open");
+}
+
+function closeModal() { document.getElementById("request-modal").classList.remove("open"); }
+
+function toggleReqType() {
+  const t = document.getElementById("req-type").value;
+  document.getElementById("quick-fields").style.display = t === "quick" ? "block" : "none";
+  document.getElementById("detailed-fields").style.display = t === "detailed" ? "block" : "none";
+}
+
+function submitRequest() {
+  const name = document.getElementById("req-name").value.trim();
+  const email = document.getElementById("req-email").value.trim();
+  if (!name || !email) { showToast("Please fill in your name and email."); return; }
+  const type = document.getElementById("req-type").value;
+  const topic = type === "quick"
+    ? document.getElementById("req-message").value.trim()
+    : document.getElementById("req-project").value.trim();
+  if (!topic) { showToast("Please fill in the request details."); return; }
+  const urgencyMap = { low:"Low", medium:"Medium", high:"High" };
+  const urgency = type === "detailed" ? urgencyMap[document.getElementById("req-urgency").value] : "Medium";
+  myRequests.push({ requestor: name, sme: currentSME.name, topic, urgency, status:"Pending", date:"Today" });
+  document.getElementById("stat-req").textContent = 24 + myRequests.length;
+  closeModal();
+  showToast("✅ Help request sent to " + currentSME.name + "!");
+  renderAdminRequests();
+}
+
+// ===== RATE MODAL =====
+function openRate(id) {
+  currentSME = smes.find(s => s.id === id);
+  document.getElementById("rate-sme-name").textContent = currentSME.name + " · " + currentSME.role;
+  selectedRating = 0;
+  updateStars(0);
+  document.getElementById("rate-modal").classList.add("open");
+}
+
+function closeRateModal() { document.getElementById("rate-modal").classList.remove("open"); }
+
+function setRating(n) { selectedRating = n; updateStars(n); }
+
+function updateStars(n) {
+  const stars = document.querySelectorAll("#star-rating span");
+  stars.forEach((s, i) => { s.textContent = i < n ? "⭐" : "☆"; });
+}
+
+function submitRating() {
+  if (selectedRating === 0) { showToast("Please select a rating first."); return; }
+  const sme = smes.find(s => s.id === currentSME.id);
+  const ptsBefore = sme.points;
+  sme.reviews += 1;
+  sme.rating = Math.round(((sme.rating * (sme.reviews - 1) + selectedRating) / sme.reviews) * 10) / 10;
+  if (selectedRating === 5) sme.points += 15;
+  else if (selectedRating >= 4) sme.points += 10;
+  else sme.points += 5;
+  closeRateModal();
+  showToast("⭐ Thanks! " + sme.name + " earned " + (sme.points - ptsBefore) + " points!");
+  renderSMEs(smes);
+  renderLeaderboard();
+  renderAdminSMEs();
+}
+
+// ===== REGISTER =====
+function registerSME() {
+  const fname = document.getElementById("reg-fname").value.trim();
+  const lname = document.getElementById("reg-lname").value.trim();
+  const role = document.getElementById("reg-role").value.trim();
+  const email = document.getElementById("reg-email").value.trim();
+  const domain = document.getElementById("reg-domain").value;
+  if (!fname || !lname || !role || !email || !domain) { showToast("Please fill all required fields."); return; }
+  const skills = document.getElementById("reg-skills").value.split(",").map(s => s.trim()).filter(Boolean);
+  const projects = document.getElementById("reg-projects").value.trim();
+  const avail = document.getElementById("reg-avail").value;
+  const calendar = document.getElementById("reg-calendar").value.trim();
+  const colors = ["#7c3aed","#0ea5e9","#10b981","#f59e0b","#ec4899","#ef4444"];
+  const newSME = {
+    id: smes.length + 1,
+    name: fname + " " + lname, role, domain,
+    skills: skills.length ? skills : [domain],
+    availability: avail, points: 0, rating: 0, reviews: 0,
+    projects, email, calendar,
+    color: colors[smes.length % colors.length]
+  };
+  smes.push(newSME);
+  document.getElementById("stat-sme").textContent = smes.length;
+  showToast("🎉 Welcome! Your SME profile is now live.");
+  renderSMEs(smes);
+  renderLeaderboard();
+  renderAdminSMEs();
+  showPage("home");
+}
+
+// ===== ADMIN TABS =====
+function showAdminTab(tab, el) {
+  document.querySelectorAll(".admin-tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("admin-tab-smes").style.display = tab === "smes" ? "block" : "none";
+  document.getElementById("admin-tab-requests").style.display = tab === "requests" ? "block" : "none";
+}
+
+// ===== NAVIGATION =====
+function showPage(page) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-links button").forEach(b => b.classList.remove("active"));
+  document.getElementById("page-" + page).classList.add("active");
+  const navBtn = document.getElementById("nav-" + page);
+  if (navBtn) navBtn.classList.add("active");
+  if (page === "leaderboard") renderLeaderboard();
+  if (page === "admin") { renderAdminSMEs(); renderAdminRequests(); }
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ===== INIT =====
+renderSMEs(smes);
+</script>
+</body>
+</html>
